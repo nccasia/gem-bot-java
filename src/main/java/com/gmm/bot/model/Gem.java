@@ -4,7 +4,6 @@ import com.gmm.bot.enumeration.GemType;
 import lombok.Getter;
 import lombok.Setter;
 
-
 @Getter
 @Setter
 public class Gem {

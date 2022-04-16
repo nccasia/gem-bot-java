@@ -1,21 +1,20 @@
 package com.gmm.bot.controller;
 
-import com.gmm.bot.run.BotSchedule;
+import com.gmm.bot.base.BaseBot;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 @Controller
 public class BotController implements InitializingBean {
-
-    private final BotSchedule botSchedule;
-
-    public BotController(BotSchedule botSchedule) {
-        this.botSchedule = botSchedule;
-    }
+    @Autowired
+    private ObjectFactory<BaseBot> botObjectFactory;
 
     @Override
     public void afterPropertiesSet() {
-        System.out.println("START BOT");
-        botSchedule.createOneBot();
+        BaseBot bot =  botObjectFactory.getObject();
+        bot.connectSmartFox();
+        System.out.println("Start bot "+ bot.getUsername()+" successfully");
     }
 }

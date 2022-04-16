@@ -1,12 +1,10 @@
 package com.gmm.bot.model;
 
 import com.gmm.bot.enumeration.GemType;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.*;
-
 
 @Setter
 @Getter
@@ -36,6 +34,4 @@ public class Player {
         heroes.stream().filter(Hero::isAlive).forEach(hero -> heroGemType.addAll(hero.getGemTypes()));
         return heroGemType;
     }
-
-
 }

@@ -14,7 +14,6 @@ public class Const {
     public static final String ON_PLAYER_USE_SKILL = "ON_PLAYER_USE_SKILL";
     public static final String ON_SURRENDER = "ON_SURRENDER";
 
-    public static final String COMMAND_ID = "Battle";
     public static final String BATTLE_MODE = "BATTLE_MODE";
 
     //user request command
@@ -25,5 +24,4 @@ public class Const {
     public static final String I_AM_READY = "Battle.I_AM_READY";
     public static final String LOBBY_FIND_GAME = "LOBBY_FIND_GAME";
     public static final String PLAYER_JOINED_GAME = "PLAYER_JOINED_GAME";
-
 }

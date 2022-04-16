@@ -38,7 +38,7 @@ import static com.gmm.bot.model.Const.LOBBY_FIND_GAME;
 @Component
 @Scope("prototype")
 @Getter
-public class BotBase implements IEventListener {
+public class BaseBot implements IEventListener {
     private final int ENEMY_PLAYER_ID = 0;
     private final int BOT_PLAYER_ID = 2;
     @Autowired
@@ -65,13 +65,13 @@ public class BotBase implements IEventListener {
     protected SFSObject data;
     protected boolean disconnect;
 
-    public void connectSmartfox() {
+    public void connectSmartFox() {
         try {
             this.updateStatus("init", "Initializing");
             this.init();
             this.connect();
         } catch (Exception e) {
-            this.log("Init bots error =>" + e.getMessage());
+            this.log("Init bot error =>" + e.getMessage());
         }
     }
 
@@ -125,27 +125,35 @@ public class BotBase implements IEventListener {
         }
     }
 
-
     public void dispatch(BaseEvent event) throws SFSException {
-        if (event.getType().equals(SFSEvent.CONNECTION)) {
-            this.onConnection(event);
-        } else if (event.getType().equals(SFSEvent.CONNECTION_LOST)) {
-            this.onConnectionLost(event);
-        } else if (event.getType().equals(SFSEvent.LOGIN)) {
-            this.onLogin(event);
-        } else if (event.getType().equals(SFSEvent.LOGIN_ERROR)) {
-            this.onLoginError(event);
-        } else if (event.getType().equals(SFSEvent.ROOM_JOIN)) {
-            this.onRoomJoin(event);
-        } else if (event.getType().equals(SFSEvent.ROOM_JOIN_ERROR)) {
-            this.onRoomJoinError(event);
-        } else if (event.getType().equals(SFSEvent.USER_EXIT_ROOM)) {
-            this.onUserExitRoom(event);
-        } else {
-            if (event.getType().equals(SFSEvent.EXTENSION_RESPONSE)) {
-                this.onExtensionResponse(event);
-            }
+        String eventType = event.getType();
 
+        switch (eventType) {
+            case SFSEvent.CONNECTION:
+                this.onConnection(event);
+                break;
+            case SFSEvent.CONNECTION_LOST:
+                this.onConnectionLost(event);
+                break;
+            case SFSEvent.LOGIN:
+                this.onLogin(event);
+                break;
+            case SFSEvent.LOGIN_ERROR:
+                this.onLoginError(event);
+                break;
+            case SFSEvent.ROOM_JOIN:
+                this.onRoomJoin(event);
+                break;
+            case SFSEvent.ROOM_JOIN_ERROR:
+                this.onRoomJoinError(event);
+                break;
+            case SFSEvent.USER_EXIT_ROOM:
+                this.onUserExitRoom(event);
+                break;
+            case SFSEvent.EXTENSION_RESPONSE:
+                this.onExtensionResponse(event);
+                break;
+            default:
         }
     }
 

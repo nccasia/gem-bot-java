@@ -16,7 +16,7 @@ public class Grid {
     private Set<GemType> gemTypes = new HashSet<>();
     private Set<GemType> myHeroGemType;
 
-    public Grid(ISFSArray gemsCode,Set<GemType> heroGemType) {
+    public Grid(ISFSArray gemsCode, Set<GemType> heroGemType) {
         updateGems(gemsCode);
         this.myHeroGemType = heroGemType;
     }
@@ -30,39 +30,38 @@ public class Grid {
             gemTypes.add(gem.getType());
             //log.info("Gem info| index: "+i+" type "+gem.getType());
         }
-       // printArrayGems();
+        // printArrayGems();
     }
 
-    public Pair<Integer> recommendSwapGem(){
+    public Pair<Integer> recommendSwapGem() {
         List<GemSwapInfo> listMatchGem = suggestMatch();
-        if(listMatchGem.isEmpty()){
-            return new Pair<>(-1,-1);
+        if (listMatchGem.isEmpty()) {
+            return new Pair<>(-1, -1);
         }
         Optional<GemSwapInfo> matchGemSizeThanFour =
-                listMatchGem.stream().filter(gemMatch -> gemMatch.getSizeMatch() > 4 ).findFirst();
-        if (matchGemSizeThanFour.isPresent()){
+                listMatchGem.stream().filter(gemMatch -> gemMatch.getSizeMatch() > 4).findFirst();
+        if (matchGemSizeThanFour.isPresent()) {
             return matchGemSizeThanFour.get().getIndexSwapGem();
         }
         Optional<GemSwapInfo> matchGemSizeThanThree =
-                listMatchGem.stream().filter(gemMatch -> gemMatch.getSizeMatch() > 3 ).findFirst();
-        if (matchGemSizeThanThree.isPresent()){
+                listMatchGem.stream().filter(gemMatch -> gemMatch.getSizeMatch() > 3).findFirst();
+        if (matchGemSizeThanThree.isPresent()) {
             return matchGemSizeThanThree.get().getIndexSwapGem();
         }
         Optional<GemSwapInfo> matchGemSword =
                 listMatchGem.stream().filter(gemMatch -> gemMatch.getType() == GemType.SWORD).findFirst();
-        if (matchGemSword.isPresent()){
+        if (matchGemSword.isPresent()) {
             return matchGemSword.get().getIndexSwapGem();
         }
         for (GemType type : myHeroGemType) {
             Optional<GemSwapInfo> matchGem =
                     listMatchGem.stream().filter(gemMatch -> gemMatch.getType() == type).findFirst();
-            if (matchGem.isPresent()){
+            if (matchGem.isPresent()) {
                 return matchGem.get().getIndexSwapGem();
             }
         }
         return listMatchGem.get(0).getIndexSwapGem();
     }
-
 
     public List<GemSwapInfo> suggestMatch() {
         List<GemSwapInfo> listMatchGem = new ArrayList<>();
@@ -97,7 +96,7 @@ public class Grid {
         Set<Gem> matchGems = matchesAt(currentGem.getX(), currentGem.getY());
         swap(currentGem, swapGem, gems);
         if (!matchGems.isEmpty()) {
-            listMatchGem.add( new GemSwapInfo(currentGem.getIndex(), swapGem.getIndex(),matchGems.size(),currentGem.getType()));
+            listMatchGem.add(new GemSwapInfo(currentGem.getIndex(), swapGem.getIndex(), matchGems.size(), currentGem.getType()));
         }
     }
 
@@ -203,9 +202,8 @@ public class Grid {
             for (int j = 0; j < 8; j++) {
                 System.out.print((gems.get(j + i * width).getType().getCode() + "\t"));
             }
-            System.out.println("");
+            System.out.println();
         }
-        System.out.println("");
+        System.out.println();
     }
-
 }
