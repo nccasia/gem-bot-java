@@ -1,4 +1,4 @@
-package com.gmm.bot.base;
+package com.gmm.bot.ai;
 
 import com.gmm.bot.enumeration.BattleMode;
 import com.gmm.bot.enumeration.GemType;
@@ -11,9 +11,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.stereotype.Component;
 import sfs2x.client.SmartFox;
 import sfs2x.client.core.BaseEvent;
 import sfs2x.client.core.IEventListener;
@@ -32,13 +30,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static com.gmm.bot.model.Const.LOBBY_FIND_GAME;
-
 @Slf4j
-@Component
-@Scope("prototype")
 @Getter
-public class BaseBot implements IEventListener {
+public abstract class BaseBot implements IEventListener {
     private final int ENEMY_PLAYER_ID = 0;
     private final int BOT_PLAYER_ID = 2;
     @Autowired
@@ -65,7 +59,7 @@ public class BaseBot implements IEventListener {
     protected SFSObject data;
     protected boolean disconnect;
 
-    public void connectSmartFox() {
+    public void start() {
         try {
             this.updateStatus("init", "Initializing");
             this.init();
@@ -165,7 +159,7 @@ public class BaseBot implements IEventListener {
         if (user.isItMe() && !room.isGame() && !isJoinGameRoom) {
             data.putUtfString("type", "");
             data.putUtfString("adventureId", "");
-            sendZoneExtensionRequest(LOBBY_FIND_GAME, data);
+            sendZoneExtensionRequest(ConstantCommand.LOBBY_FIND_GAME, data);
             log("Send request Find game from lobby");
         }
     }
@@ -217,24 +211,24 @@ public class BaseBot implements IEventListener {
         String cmd = event.getArguments().containsKey("cmd") ? event.getArguments().get("cmd").toString() : "";
         SFSObject params = (SFSObject) event.getArguments().get("params");
         switch (cmd) {
-            case Const.START_GAME:
+            case ConstantCommand.START_GAME:
                 ISFSObject gameSession = params.getSFSObject("gameSession");
                 startGame(gameSession, room);
                 break;
-            case Const.END_GAME:
+            case ConstantCommand.END_GAME:
                 endGame();
                 break;
-            case Const.START_TURN:
+            case ConstantCommand.START_TURN:
                 startTurn(params);
                 break;
-            case Const.ON_SWAP_GEM:
+            case ConstantCommand.ON_SWAP_GEM:
                 swapGem(params);
                 break;
-            case Const.ON_PLAYER_USE_SKILL:
+            case ConstantCommand.ON_PLAYER_USE_SKILL:
                 handleGems(params);
                 break;
-            case Const.PLAYER_JOINED_GAME:
-                sendExtensionRequest(Const.I_AM_READY, new SFSObject());
+            case ConstantCommand.PLAYER_JOINED_GAME:
+                sendExtensionRequest(ConstantCommand.I_AM_READY, new SFSObject());
                 break;
         }
 
@@ -363,8 +357,8 @@ public class BaseBot implements IEventListener {
         log("login()");
         this.token = "bot";
         SFSObject parameters = new SFSObject();
-        parameters.putUtfString(Const.BATTLE_MODE, BattleMode.NORMAL.name());
-        parameters.putUtfString(Const.ID_TOKEN, this.token);
+        parameters.putUtfString(ConstantCommand.BATTLE_MODE, BattleMode.NORMAL.name());
+        parameters.putUtfString(ConstantCommand.ID_TOKEN, this.token);
         this.sfsClient.send(new LoginRequest(username, "", zone, parameters));
     }
 
@@ -402,8 +396,8 @@ public class BaseBot implements IEventListener {
         public void run() {
             SFSObject data = new SFSObject();
             data.putBool("isFirstTurn", isFirstTurn);
-            log("sendExtensionRequest()|room:" + room.getName() + "|extCmd:" + Const.FINISH_TURN + " first turn " + isFirstTurn);
-            sendExtensionRequest(Const.FINISH_TURN, data);
+            log("sendExtensionRequest()|room:" + room.getName() + "|extCmd:" + ConstantCommand.FINISH_TURN + " first turn " + isFirstTurn);
+            sendExtensionRequest(ConstantCommand.FINISH_TURN, data);
         }
     }
 
@@ -424,8 +418,8 @@ public class BaseBot implements IEventListener {
             }
             data.putUtfString("selectedGem", String.valueOf(selectGem().getCode()));
             data.putUtfString("gemIndex", String.valueOf(ThreadLocalRandom.current().nextInt(64)));
-            log("sendExtensionRequest()|room:" + room.getName() + "|extCmd:" + Const.USE_SKILL + "|Hero cast skill: " + heroCastSkill.getName());
-            sendExtensionRequest(Const.USE_SKILL, data);
+            log("sendExtensionRequest()|room:" + room.getName() + "|extCmd:" + ConstantCommand.USE_SKILL + "|Hero cast skill: " + heroCastSkill.getName());
+            sendExtensionRequest(ConstantCommand.USE_SKILL, data);
         }
 
     }
@@ -436,8 +430,8 @@ public class BaseBot implements IEventListener {
             Pair<Integer> indexSwap = grid.recommendSwapGem();
             data.putInt("index1", indexSwap.getParam1());
             data.putInt("index2", indexSwap.getParam2());
-            log("sendExtensionRequest()|room:" + room.getName() + "|extCmd:" + Const.SWAP_GEM + "|index1: " + indexSwap.getParam1() + " index1: " + indexSwap.getParam2());
-            sendExtensionRequest(Const.SWAP_GEM, data);
+            log("sendExtensionRequest()|room:" + room.getName() + "|extCmd:" + ConstantCommand.SWAP_GEM + "|index1: " + indexSwap.getParam1() + " index1: " + indexSwap.getParam2());
+            sendExtensionRequest(ConstantCommand.SWAP_GEM, data);
         }
     }
 }
