@@ -2,11 +2,13 @@ package com.gmm.bot.ai;
 
 import com.gmm.bot.enumeration.BattleMode;
 import com.gmm.bot.enumeration.GemType;
-import com.gmm.bot.model.*;
+import com.gmm.bot.model.Grid;
+import com.gmm.bot.model.Hero;
+import com.gmm.bot.model.Pair;
+import com.gmm.bot.model.Player;
 import com.smartfoxserver.v2.entities.data.ISFSArray;
 import com.smartfoxserver.v2.entities.data.ISFSObject;
 import com.smartfoxserver.v2.entities.data.SFSObject;
-import com.smartfoxserver.v2.exceptions.SFSException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +22,6 @@ import sfs2x.client.entities.Room;
 import sfs2x.client.entities.User;
 import sfs2x.client.requests.ExtensionRequest;
 import sfs2x.client.requests.JoinRoomRequest;
-import sfs2x.client.requests.LeaveRoomRequest;
 import sfs2x.client.requests.LoginRequest;
 import sfs2x.client.util.ConfigData;
 
@@ -61,7 +62,7 @@ public abstract class BaseBot implements IEventListener {
 
     public void start() {
         try {
-            this.updateStatus("init", "Initializing");
+            this.logStatus("init", "Initializing");
             this.init();
             this.connect();
         } catch (Exception e) {
@@ -75,32 +76,28 @@ public abstract class BaseBot implements IEventListener {
         data = new SFSObject();
         isJoinGameRoom = false;
         disconnect = false;
+
         this.sfsClient.addEventListener(SFSEvent.CONNECTION, this);
         this.sfsClient.addEventListener(SFSEvent.CONNECTION_LOST, this);
         this.sfsClient.addEventListener(SFSEvent.LOGIN, this);
         this.sfsClient.addEventListener(SFSEvent.LOGIN_ERROR, this);
         this.sfsClient.addEventListener(SFSEvent.ROOM_JOIN, this);
         this.sfsClient.addEventListener(SFSEvent.ROOM_JOIN_ERROR, this);
-        this.sfsClient.addEventListener(SFSEvent.ROOM_VARIABLES_UPDATE, this);
-        this.sfsClient.addEventListener(SFSEvent.USER_EXIT_ROOM, this);
-        this.sfsClient.addEventListener(SFSEvent.USER_ENTER_ROOM, this);
-        this.sfsClient.addEventListener(SFSEvent.ROOM_ADD, this);
-        this.sfsClient.addEventListener(SFSEvent.ROOM_GROUP_SUBSCRIBE, this);
-        this.sfsClient.addEventListener(SFSEvent.ROOM_GROUP_SUBSCRIBE_ERROR, this);
-        this.sfsClient.addEventListener(SFSEvent.USER_VARIABLES_UPDATE, this);
         this.sfsClient.addEventListener(SFSEvent.EXTENSION_RESPONSE, this);
-
     }
 
     protected void connect() {
-        this.updateStatus("connecting", " => Connecting to smartfox server " + host + "|" + port + " zone: " + zone);
+        this.logStatus("connecting", " => Connecting to smartfox server " + host + "|" + port + " zone: " + zone);
+
         this.sfsClient.setUseBlueBox(true);
         this.sfsClient.connect(this.host, this.port);
+
         ConfigData cf = new ConfigData();
         cf.setHost(host);
         cf.setPort(port);
         cf.setUseBBox(true);
         cf.setZone(zone);
+
         try {
             this.sfsClient.connect(cf);
         } catch (Exception e) {
@@ -108,9 +105,8 @@ public abstract class BaseBot implements IEventListener {
         }
     }
 
-
     public void disconnect() {
-        this.updateStatus("disconnect|", " manual called disconnect from client");
+        this.logStatus("disconnect|", " manual called disconnect from client");
         try {
             sfsClient.disconnect();
             disconnect = true;
@@ -119,7 +115,7 @@ public abstract class BaseBot implements IEventListener {
         }
     }
 
-    public void dispatch(BaseEvent event) throws SFSException {
+    public void dispatch(BaseEvent event) {
         String eventType = event.getType();
 
         switch (eventType) {
@@ -130,7 +126,7 @@ public abstract class BaseBot implements IEventListener {
                 this.onConnectionLost(event);
                 break;
             case SFSEvent.LOGIN:
-                this.onLogin(event);
+                this.onLoginSuccess(event);
                 break;
             case SFSEvent.LOGIN_ERROR:
                 this.onLoginError(event);
@@ -141,9 +137,6 @@ public abstract class BaseBot implements IEventListener {
             case SFSEvent.ROOM_JOIN_ERROR:
                 this.onRoomJoinError(event);
                 break;
-            case SFSEvent.USER_EXIT_ROOM:
-                this.onUserExitRoom(event);
-                break;
             case SFSEvent.EXTENSION_RESPONSE:
                 this.onExtensionResponse(event);
                 break;
@@ -151,47 +144,29 @@ public abstract class BaseBot implements IEventListener {
         }
     }
 
-
-    protected void onUserExitRoom(BaseEvent event) {
-        User user = (User) event.getArguments().get("user");
-        Room room = (Room) event.getArguments().get("room");
-        log("onUserExitRoom|called user: " + user.getName() + " room: " + room.getName());
-        if (user.isItMe() && !room.isGame() && !isJoinGameRoom) {
-            data.putUtfString("type", "");
-            data.putUtfString("adventureId", "");
-            sendZoneExtensionRequest(ConstantCommand.LOBBY_FIND_GAME, data);
-            log("Send request Find game from lobby");
-        }
-    }
-
-    protected void onConnection(BaseEvent event) {
+    private void onConnection(BaseEvent event) {
         if (event.getArguments().get("success").equals(true)) {
-            this.onConnected(event);
+            this.logStatus("try-login", "Connected to smartfox|" + event.getArguments().toString());
+            this.login();
         } else {
-            this.updateStatus("onConnection|success == false", "Failed to connect");
+            this.logStatus("onConnection|success == false", "Failed to connect");
         }
-    }
-
-
-    protected void onConnected(BaseEvent event) {
-        this.updateStatus("connecting", "Connected to smartfox|" + event.getArguments().toString());
-        this.login();
     }
 
     protected void onConnectionLost(BaseEvent event) {
-        this.updateStatus("onConnectionLost", "userId connection lost server: " + event.getArguments().toString());
+        this.logStatus("onConnectionLost", "userId connection lost server: " + event.getArguments().toString());
         disconnect = true;
         sfsClient.removeAllEventListeners();
     }
 
 
     protected void onLoginError(BaseEvent event) {
-        this.updateStatus("login-error", "Login failed");
+        this.logStatus("login-error", "Login failed");
         disconnect();
     }
 
     protected void onRoomJoin(BaseEvent event) {
-        updateStatus("Join-room", "Joined room " + this.sfsClient.getLastJoinedRoom().getName());
+        logStatus("Join-room", "Joined room " + this.sfsClient.getLastJoinedRoom().getName());
         room = (Room) event.getArguments().get("room");
         if (!room.getName().equals("lobby")) {
             return;
@@ -202,7 +177,7 @@ public abstract class BaseBot implements IEventListener {
 
     protected void onRoomJoinError(BaseEvent event) {
         if (this.sfsClient.getLastJoinedRoom() != null) {
-            this.updateStatus("join-room", "Joined room " + this.sfsClient.getLastJoinedRoom().getName());
+            this.logStatus("join-room", "Joined room " + this.sfsClient.getLastJoinedRoom().getName());
         }
         taskScheduler.schedule(new FindRoomGame(), new Date(System.currentTimeMillis() + delayFindGame));
     }
@@ -242,14 +217,15 @@ public abstract class BaseBot implements IEventListener {
         handleGems(params);
     }
 
-    private void handleHeros(ISFSObject params) {
-        ISFSArray herosBotPlayer = params.getSFSArray(botPlayer.getDisplayName());
-        ISFSArray herosEnemyPlayer = params.getSFSArray(enemyPlayer.getDisplayName());
+    private void handleHeroes(ISFSObject params) {
+        ISFSArray heroesBotPlayer = params.getSFSArray(botPlayer.getDisplayName());
         for (int i = 0; i < botPlayer.getHeroes().size(); i++) {
-            botPlayer.getHeroes().get(i).updateHero(herosBotPlayer.getSFSObject(i));
+            botPlayer.getHeroes().get(i).updateHero(heroesBotPlayer.getSFSObject(i));
         }
+
+        ISFSArray heroesEnemyPlayer = params.getSFSArray(enemyPlayer.getDisplayName());
         for (int i = 0; i < enemyPlayer.getHeroes().size(); i++) {
-            enemyPlayer.getHeroes().get(i).updateHero(herosEnemyPlayer.getSFSObject(i));
+            enemyPlayer.getHeroes().get(i).updateHero(heroesEnemyPlayer.getSFSObject(i));
         }
     }
 
@@ -261,7 +237,7 @@ public abstract class BaseBot implements IEventListener {
         ISFSObject lastSnapshot = snapshotSfsArray.getSFSObject(snapshotSfsArray.size() - 1);
         boolean needRenewBoard = params.containsKey("renewBoard");
         // update information of hero
-        handleHeros(lastSnapshot);
+        handleHeroes(lastSnapshot);
         if (needRenewBoard) {
             grid.updateGems(params.getSFSArray("renewBoard"));
             taskScheduler.schedule(new FinishTurn(false), new Date(System.currentTimeMillis() + delaySwapGem));
@@ -321,7 +297,6 @@ public abstract class BaseBot implements IEventListener {
         currentPlayerId = gameSession.getInt("currentPlayerId");
         log("Initial game ");
         taskScheduler.schedule(new FinishTurn(true), new Date(System.currentTimeMillis() + delaySwapGem));
-
     }
 
     protected void assignPlayers(Room room) {
@@ -336,7 +311,7 @@ public abstract class BaseBot implements IEventListener {
         }
     }
 
-    protected void updateStatus(String status, String logMsg) {
+    protected void logStatus(String status, String logMsg) {
         log.info(this.username + "|" + status + "|" + logMsg + "\n");
     }
 
@@ -344,9 +319,15 @@ public abstract class BaseBot implements IEventListener {
         log.info(this.username + "|" + msg);
     }
 
-    protected void onLogin(BaseEvent event) {
+    private void onLoginSuccess(BaseEvent event) {
         try {
             log("onLogin()|" + event.getArguments().toString());
+
+            // Find game after login
+            data.putUtfString("type", "");
+            data.putUtfString("adventureId", "");
+            sendZoneExtensionRequest(ConstantCommand.LOBBY_FIND_GAME, data);
+
         } catch (Exception e) {
             log("onLogin|error => " + e.getMessage());
             e.printStackTrace();
@@ -379,9 +360,7 @@ public abstract class BaseBot implements IEventListener {
             if (botRoom.isPresent()) {
                 sfsClient.send(new JoinRoomRequest(botRoom.get()));
                 isJoinGameRoom = true;
-                return;
             }
-            sfsClient.send(new LeaveRoomRequest());
         }
     }
 
