@@ -1,12 +1,8 @@
 package com.gmm.bot.ai;
 
 import com.gmm.bot.enumeration.BattleMode;
-import com.gmm.bot.enumeration.GemType;
 import com.gmm.bot.model.Grid;
-import com.gmm.bot.model.Hero;
-import com.gmm.bot.model.Pair;
 import com.gmm.bot.model.Player;
-import com.smartfoxserver.v2.entities.data.ISFSArray;
 import com.smartfoxserver.v2.entities.data.ISFSObject;
 import com.smartfoxserver.v2.entities.data.SFSObject;
 import lombok.Getter;
@@ -29,7 +25,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 @Getter
@@ -90,7 +85,6 @@ public abstract class BaseBot implements IEventListener {
         this.logStatus("connecting", " => Connecting to smartfox server " + host + "|" + port + " zone: " + zone);
 
         this.sfsClient.setUseBlueBox(true);
-        this.sfsClient.connect(this.host, this.port);
 
         ConfigData cf = new ConfigData();
         cf.setHost(host);
@@ -185,6 +179,8 @@ public abstract class BaseBot implements IEventListener {
     protected void onExtensionResponse(BaseEvent event) {
         String cmd = event.getArguments().containsKey("cmd") ? event.getArguments().get("cmd").toString() : "";
         SFSObject params = (SFSObject) event.getArguments().get("params");
+
+        logStatus("onExtensionResponse", cmd);
         switch (cmd) {
             case ConstantCommand.START_GAME:
                 ISFSObject gameSession = params.getSFSObject("gameSession");
