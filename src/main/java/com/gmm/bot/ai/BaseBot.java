@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.gmm.bot.ai.ConstantCommand.LOBBY_FIND_GAME;
+
 @Slf4j
 @Getter
 public abstract class BaseBot implements IEventListener {
@@ -245,7 +247,7 @@ public abstract class BaseBot implements IEventListener {
             // Find game after login
             data.putUtfString("type", "");
             data.putUtfString("adventureId", "");
-            sendZoneExtensionRequest(ConstantCommand.LOBBY_FIND_GAME, data);
+            sendZoneExtensionRequest(LOBBY_FIND_GAME, data);
         } catch (Exception e) {
             log("onLogin|error => " + e.getMessage());
             e.printStackTrace();
@@ -272,13 +274,10 @@ public abstract class BaseBot implements IEventListener {
     private class FindRoomGame implements Runnable {
         @Override
         public void run() {
-            List<Room> rooms = sfsClient.getRoomList();
-            List<Room> joinedRooms = sfsClient.getJoinedRooms();
-            Optional<Room> botRoom = rooms.stream().filter(room1 -> room1.isGame() && room1.getUserCount() == 1 && !joinedRooms.contains(room1)).findFirst(); //&& room1.getName().startsWith("bot") && room1.isHidden()
-            if (botRoom.isPresent()) {
-                sfsClient.send(new JoinRoomRequest(botRoom.get()));
-                isJoinGameRoom = true;
-            }
+            data.putUtfString("type", "");
+            data.putUtfString("adventureId", "");
+            sendZoneExtensionRequest(LOBBY_FIND_GAME, data);
+            log("Send request Find game from lobby");
         }
     }
 }
