@@ -92,7 +92,7 @@ public abstract class BaseBot implements IEventListener {
         this.logStatus("connecting", " => Connecting to smartfox server " + host + "|" + port + " zone: " + zone);
 
         this.sfsClient.setUseBlueBox(true);
-        this.sfsClient.connect(this.host, this.port);
+
 
         ConfigData cf = new ConfigData();
         cf.setHost(host);
@@ -173,15 +173,18 @@ public abstract class BaseBot implements IEventListener {
         if (room.isGame()) {
             return;
         }
-
-        taskScheduler.schedule(new FindRoomGame(), new Date(System.currentTimeMillis() + delayFindGame));
+        data.putUtfString("type", "");
+        data.putUtfString("adventureId", "");
+        sendZoneExtensionRequest(LOBBY_FIND_GAME, data);
+        log("Send request Find game from lobby");
+        //taskScheduler.schedule(new FindRoomGame(), new Date(System.currentTimeMillis() + delayFindGame));
     }
 
     protected void onRoomJoinError(BaseEvent event) {
         if (this.sfsClient.getLastJoinedRoom() != null) {
             this.logStatus("join-room", "Joined room " + this.sfsClient.getLastJoinedRoom().getName());
         }
-        taskScheduler.schedule(new FindRoomGame(), new Date(System.currentTimeMillis() + delayFindGame));
+        //taskScheduler.schedule(new FindRoomGame(), new Date(System.currentTimeMillis() + delayFindGame));
     }
 
     protected void onExtensionResponse(BaseEvent event) {
@@ -247,11 +250,6 @@ public abstract class BaseBot implements IEventListener {
     private void onLoginSuccess(BaseEvent event) {
         try {
             log("onLogin()|" + event.getArguments().toString());
-
-            // Find game after login
-            data.putUtfString("type", "");
-            data.putUtfString("adventureId", "");
-            sendZoneExtensionRequest(LOBBY_FIND_GAME, data);
         } catch (Exception e) {
             log("onLogin|error => " + e.getMessage());
             e.printStackTrace();
@@ -264,6 +262,7 @@ public abstract class BaseBot implements IEventListener {
         SFSObject parameters = new SFSObject();
         parameters.putUtfString(ConstantCommand.BATTLE_MODE, BattleMode.NORMAL.name());
         parameters.putUtfString(ConstantCommand.ID_TOKEN, this.token);
+        parameters.putUtfString(ConstantCommand.NICK_NAME, username);
         this.sfsClient.send(new LoginRequest(username, "", zone, parameters));
     }
 
