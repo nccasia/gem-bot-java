@@ -1,8 +1,12 @@
 package com.gmm.bot.ai;
 
 import com.gmm.bot.enumeration.BattleMode;
+import com.gmm.bot.enumeration.GemType;
 import com.gmm.bot.model.Grid;
+import com.gmm.bot.model.Hero;
+import com.gmm.bot.model.Pair;
 import com.gmm.bot.model.Player;
+import com.smartfoxserver.v2.entities.data.ISFSArray;
 import com.smartfoxserver.v2.entities.data.ISFSObject;
 import com.smartfoxserver.v2.entities.data.SFSObject;
 import lombok.Getter;
@@ -25,6 +29,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static com.gmm.bot.ai.ConstantCommand.LOBBY_FIND_GAME;
 
@@ -87,6 +92,7 @@ public abstract class BaseBot implements IEventListener {
         this.logStatus("connecting", " => Connecting to smartfox server " + host + "|" + port + " zone: " + zone);
 
         this.sfsClient.setUseBlueBox(true);
+        this.sfsClient.connect(this.host, this.port);
 
         ConfigData cf = new ConfigData();
         cf.setHost(host);
@@ -167,8 +173,11 @@ public abstract class BaseBot implements IEventListener {
         if (room.isGame()) {
             return;
         }
-
-        taskScheduler.schedule(new FindRoomGame(), new Date(System.currentTimeMillis() + delayFindGame));
+        data.putUtfString("type", "");
+        data.putUtfString("adventureId", "");
+        sendZoneExtensionRequest(LOBBY_FIND_GAME, data);
+        log("Send request Find game from lobby");
+        //taskScheduler.schedule(new FindRoomGame(), new Date(System.currentTimeMillis() + delayFindGame));
     }
 
     protected void onRoomJoinError(BaseEvent event) {
@@ -260,6 +269,7 @@ public abstract class BaseBot implements IEventListener {
         SFSObject parameters = new SFSObject();
         parameters.putUtfString(ConstantCommand.BATTLE_MODE, BattleMode.NORMAL.name());
         parameters.putUtfString(ConstantCommand.ID_TOKEN, this.token);
+        parameters.putUtfString(ConstantCommand.NICK_NAME, username);
         this.sfsClient.send(new LoginRequest(username, "", zone, parameters));
     }
 

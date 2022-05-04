@@ -2,6 +2,7 @@ package com.gmm.bot.ai;
 
 public class ConstantCommand {
     public static final String ID_TOKEN = "ID_TOKEN";
+    public static final String NICK_NAME = "NICK_NAME";
 
     // REQUEST command
     public static final String SWAP_GEM = "Battle.SWAP_GEM";
