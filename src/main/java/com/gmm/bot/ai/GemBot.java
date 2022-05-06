@@ -147,6 +147,7 @@ public class GemBot extends BaseBot{
             }
             data.putUtfString("selectedGem", String.valueOf(selectGem().getCode()));
             data.putUtfString("gemIndex", String.valueOf(ThreadLocalRandom.current().nextInt(64)));
+            data.putBool("isTargetAllyOrNot",false);hit
             log("sendExtensionRequest()|room:" + room.getName() + "|extCmd:" + ConstantCommand.USE_SKILL + "|Hero cast skill: " + heroCastSkill.getName());
             sendExtensionRequest(ConstantCommand.USE_SKILL, data);
         }
