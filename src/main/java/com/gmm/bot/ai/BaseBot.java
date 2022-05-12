@@ -92,7 +92,7 @@ public abstract class BaseBot implements IEventListener {
         this.logStatus("connecting", " => Connecting to smartfox server " + host + "|" + port + " zone: " + zone);
 
         this.sfsClient.setUseBlueBox(true);
-
+        this.sfsClient.connect(this.host, this.port);
 
         ConfigData cf = new ConfigData();
         cf.setHost(host);
@@ -184,12 +184,14 @@ public abstract class BaseBot implements IEventListener {
         if (this.sfsClient.getLastJoinedRoom() != null) {
             this.logStatus("join-room", "Joined room " + this.sfsClient.getLastJoinedRoom().getName());
         }
-        //taskScheduler.schedule(new FindRoomGame(), new Date(System.currentTimeMillis() + delayFindGame));
+        taskScheduler.schedule(new FindRoomGame(), new Date(System.currentTimeMillis() + delayFindGame));
     }
 
     protected void onExtensionResponse(BaseEvent event) {
         String cmd = event.getArguments().containsKey("cmd") ? event.getArguments().get("cmd").toString() : "";
         SFSObject params = (SFSObject) event.getArguments().get("params");
+
+        logStatus("onExtensionResponse", cmd);
         switch (cmd) {
             case ConstantCommand.START_GAME:
                 ISFSObject gameSession = params.getSFSObject("gameSession");
@@ -250,6 +252,11 @@ public abstract class BaseBot implements IEventListener {
     private void onLoginSuccess(BaseEvent event) {
         try {
             log("onLogin()|" + event.getArguments().toString());
+
+            // Find game after login
+            data.putUtfString("type", "");
+            data.putUtfString("adventureId", "");
+            sendZoneExtensionRequest(ConstantCommand.LOBBY_FIND_GAME, data);
         } catch (Exception e) {
             log("onLogin|error => " + e.getMessage());
             e.printStackTrace();
