@@ -287,7 +287,7 @@ public abstract class BaseBot implements IEventListener {
             data.putUtfString("type", "");
             data.putUtfString("adventureId", "");
             sendZoneExtensionRequest(LOBBY_FIND_GAME, data);
-            log("Send request Find game from lobby");
+            log("SendZoneExtension LOBBY_FIND_GAME");
         }
     }
 }
