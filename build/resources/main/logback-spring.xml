@@ -39,26 +39,10 @@
         <appender-ref ref="Console"/>
     </root>
 
-    <springProfile name="local">
-        <logger name="com.gmm.bot" level="info" additivity="false">
-            <appender-ref ref="RollingFile"/>
-            <appender-ref ref="Console"/>
-        </logger>
-    </springProfile>
-
-    <springProfile name="prod">
-        <logger name="com.gmm.bot" level="info" additivity="false">
-            <appender-ref ref="RollingFile"/>
-            <appender-ref ref="Console"/>
-        </logger>
-    </springProfile>
-
-    <springProfile name="stg">
-        <logger name="com.gmm.bot" level="info" additivity="false">
-            <appender-ref ref="RollingFile"/>
-            <appender-ref ref="Console"/>
-        </logger>
-    </springProfile>
+    <logger name="com.gmm.bot" level="info" additivity="false">
+        <appender-ref ref="RollingFile"/>
+        <appender-ref ref="Console"/>
+    </logger>
 
     <logger name="com.hazelcast" level="INFO"/>
     <logger name="com.ryantenney" level="WARN"/>

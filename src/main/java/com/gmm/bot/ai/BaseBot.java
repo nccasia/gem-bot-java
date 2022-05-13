@@ -78,7 +78,7 @@ public abstract class BaseBot implements IEventListener {
         data = new SFSObject();
         isJoinGameRoom = false;
         disconnect = false;
-
+        this.token = "bot";
         this.sfsClient.addEventListener(SFSEvent.CONNECTION, this);
         this.sfsClient.addEventListener(SFSEvent.CONNECTION_LOST, this);
         this.sfsClient.addEventListener(SFSEvent.LOGIN, this);
@@ -265,7 +265,6 @@ public abstract class BaseBot implements IEventListener {
 
     protected void login() {
         log("login()");
-        this.token = "bot";
         SFSObject parameters = new SFSObject();
         parameters.putUtfString(ConstantCommand.BATTLE_MODE, BattleMode.NORMAL.name());
         parameters.putUtfString(ConstantCommand.ID_TOKEN, this.token);
