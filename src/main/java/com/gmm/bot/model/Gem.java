@@ -1,5 +1,6 @@
 package com.gmm.bot.model;
 
+import com.gmm.bot.enumeration.GemModifier;
 import com.gmm.bot.enumeration.GemType;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,11 +14,17 @@ public class Gem {
     private int x;
     private int y;
     private GemType type;
+    private GemModifier modifier;
 
-    public Gem(int index, GemType type) {
+    public Gem(int index, GemType type,GemModifier gemModifier) {
         this.index = index;
         this.type = type;
+        this.modifier = gemModifier;
         updatePosition();
+    }
+
+    public Gem(int index, GemType gemType){
+        this(index,gemType,GemModifier.NONE);
     }
 
     private void updatePosition() {

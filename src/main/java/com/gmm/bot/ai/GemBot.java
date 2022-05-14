@@ -44,13 +44,15 @@ public class GemBot extends BaseBot{
         // update information of hero
         handleHeroes(lastSnapshot);
         if (needRenewBoard) {
-            grid.updateGems(params.getSFSArray("renewBoard"));
+            grid.updateGems(params.getSFSArray("renewBoard"),null);
             taskScheduler.schedule(new FinishTurn(false), new Date(System.currentTimeMillis() + delaySwapGem));
             return;
         }
         // update gem
         grid.setGemTypes(botPlayer.getRecommendGemType());
-        grid.updateGems(lastSnapshot.getSFSArray("gems"));
+        ISFSArray gemCodes = lastSnapshot.getSFSArray("gems");
+        ISFSArray gemModifiers = lastSnapshot.getSFSArray("gemModifiers");
+        grid.updateGems(gemCodes,gemModifiers);
         taskScheduler.schedule(new FinishTurn(false), new Date(System.currentTimeMillis() + delaySwapGem));
     }
 
@@ -100,7 +102,7 @@ public class GemBot extends BaseBot{
         }
 
         // Gems
-        grid = new Grid(gameSession.getSFSArray("gems"), botPlayer.getRecommendGemType());
+        grid = new Grid(gameSession.getSFSArray("gems"),null, botPlayer.getRecommendGemType());
         currentPlayerId = gameSession.getInt("currentPlayerId");
         log("Initial game ");
         taskScheduler.schedule(new FinishTurn(true), new Date(System.currentTimeMillis() + delaySwapGem));
