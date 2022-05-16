@@ -1,5 +1,6 @@
 package com.gmm.bot.model;
 
+import com.gmm.bot.enumeration.GemModifier;
 import com.gmm.bot.enumeration.GemType;
 import com.smartfoxserver.v2.entities.data.ISFSArray;
 import lombok.Getter;
@@ -16,22 +17,30 @@ public class Grid {
     private Set<GemType> gemTypes = new HashSet<>();
     private Set<GemType> myHeroGemType;
 
-    public Grid(ISFSArray gemsCode, Set<GemType> heroGemType) {
-        updateGems(gemsCode);
+    public Grid(ISFSArray gemsCode,ISFSArray gemModifiers, Set<GemType> heroGemType) {
+        updateGems(gemsCode,gemModifiers);
         this.myHeroGemType = heroGemType;
     }
 
-    public void updateGems(ISFSArray gemsCode) {
+    public void updateGems(ISFSArray gemsCode,ISFSArray gemModifiers ) {
         gems.clear();
         gemTypes.clear();
-        for (int i = 0; i < gemsCode.size(); i++) {
-            Gem gem = new Gem(i, GemType.from(gemsCode.getByte(i)));
-            gems.add(gem);
-            gemTypes.add(gem.getType());
-            //log.info("Gem info| index: "+i+" type "+gem.getType());
+        if(gemModifiers != null){
+            for (int i = 0; i < gemsCode.size(); i++) {
+                Gem gem = new Gem(i, GemType.from(gemsCode.getByte(i)), GemModifier.from(gemModifiers.getByte(i)));
+                gems.add(gem);
+                gemTypes.add(gem.getType());
+            }
+        } else {
+            for (int i = 0; i < gemsCode.size(); i++) {
+                Gem gem = new Gem(i, GemType.from(gemsCode.getByte(i)));
+                gems.add(gem);
+                gemTypes.add(gem.getType());
+            }
         }
-        // printArrayGems();
+
     }
+
 
     public Pair<Integer> recommendSwapGem() {
         List<GemSwapInfo> listMatchGem = suggestMatch();
