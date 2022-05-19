@@ -1,6 +1,7 @@
 package com.gmm.bot.model;
 
 import com.gmm.bot.enumeration.GemType;
+import com.gmm.bot.enumeration.HeroIdEnum;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,7 +23,7 @@ public class Player {
     }
 
     public Optional<Hero> anyHeroFullMana() {
-        return heroes.stream().filter(hero -> hero.isAlive() && hero.isFullMana()).findFirst();
+        return heroes.stream().filter(hero -> hero.isAlive() && hero.isFullMana() && !hero.getId().equals(HeroIdEnum.ELIZAH)).findFirst();
     }
 
     public Hero firstHeroAlive() {
