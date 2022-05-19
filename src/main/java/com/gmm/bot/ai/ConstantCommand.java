@@ -19,6 +19,7 @@ public class ConstantCommand {
     public static final String END_GAME = "END_GAME";
     public static final String START_TURN = "START_TURN";
     public static final String END_TURN = "END_TURN";
+    public static final String SEND_ALERT = "SEND_ALERT";
 
     public static final String ON_SWAP_GEM = "ON_SWAP_GEM";
     public static final String ON_PLAYER_USE_SKILL = "ON_PLAYER_USE_SKILL";

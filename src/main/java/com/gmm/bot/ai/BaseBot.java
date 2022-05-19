@@ -2,10 +2,7 @@ package com.gmm.bot.ai;
 
 import com.gmm.bot.enumeration.BattleMode;
 import com.gmm.bot.enumeration.GemType;
-import com.gmm.bot.model.Grid;
-import com.gmm.bot.model.Hero;
-import com.gmm.bot.model.Pair;
-import com.gmm.bot.model.Player;
+import com.gmm.bot.model.*;
 import com.smartfoxserver.v2.entities.data.ISFSArray;
 import com.smartfoxserver.v2.entities.data.ISFSObject;
 import com.smartfoxserver.v2.entities.data.SFSObject;
@@ -13,7 +10,9 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.web.client.RestTemplate;
 import sfs2x.client.SmartFox;
 import sfs2x.client.core.BaseEvent;
 import sfs2x.client.core.IEventListener;
@@ -58,6 +57,7 @@ public abstract class BaseBot implements IEventListener {
     protected Grid grid;
     protected volatile boolean isJoinGameRoom;
     protected String username;
+    protected String password;
     protected String token;
     protected SFSObject data;
     protected boolean disconnect;
@@ -73,7 +73,8 @@ public abstract class BaseBot implements IEventListener {
     }
 
     private void init() {
-        username = "bot_" + UUID.randomUUID();
+        username = "hiep.nguyenvan1";
+        password = "123456";
         sfsClient = new SmartFox();
         data = new SFSObject();
         isJoinGameRoom = false;
@@ -212,7 +213,14 @@ public abstract class BaseBot implements IEventListener {
             case ConstantCommand.PLAYER_JOINED_GAME:
                 sendExtensionRequest(ConstantCommand.I_AM_READY, new SFSObject());
                 break;
+            case ConstantCommand.SEND_ALERT:
+                showError(params);
         }
+    }
+
+    private void showError(SFSObject params) {
+        String error = params.getUtfString("message");
+        log(error);
     }
 
     protected abstract void startGame(ISFSObject gameSession, Room room);
@@ -252,11 +260,6 @@ public abstract class BaseBot implements IEventListener {
     private void onLoginSuccess(BaseEvent event) {
         try {
             log("onLogin()|" + event.getArguments().toString());
-
-            // Find game after login
-            data.putUtfString("type", "");
-            data.putUtfString("adventureId", "");
-            sendZoneExtensionRequest(LOBBY_FIND_GAME, data);
         } catch (Exception e) {
             log("onLogin|error => " + e.getMessage());
             e.printStackTrace();
@@ -265,6 +268,7 @@ public abstract class BaseBot implements IEventListener {
 
     protected void login() {
         log("login()");
+        getTokenLogin();
         SFSObject parameters = new SFSObject();
         parameters.putUtfString(ConstantCommand.BATTLE_MODE, BattleMode.NORMAL.name());
         parameters.putUtfString(ConstantCommand.ID_TOKEN, this.token);
@@ -288,5 +292,13 @@ public abstract class BaseBot implements IEventListener {
             sendZoneExtensionRequest(LOBBY_FIND_GAME, data);
             log("SendZoneExtension LOBBY_FIND_GAME");
         }
+    }
+
+    private void getTokenLogin(){
+        HttpEntity<Account> request = new HttpEntity<>(new Account(username,password));
+        String URL ="http://172.16.100.112:8081/api/v1/user/authenticate";
+        RestTemplate restTemplate = new RestTemplate();
+        Object response= restTemplate.postForObject(URL,request,Object.class);
+        this.token=response.toString().split("=")[1].replace("}","");
     }
 }
